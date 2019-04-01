@@ -27,3 +27,24 @@ data "google_organization" "org" {
   count        = "${var.domain == "" ? 1 : 0}"
   organization = "${var.org_id}"
 }
+
+resource "null_resource" "preconditions" {
+  triggers {
+    credentials_path = "${var.credentials_path}"
+    org_id           = "${var.org_id}"
+    domain           = "${var.domain}"
+  }
+
+  provisioner "local-exec" {
+    command = <<EOD
+${path.module}/scripts/preconditions.sh \
+    --credentials_path '${var.credentials_path}' \
+    --org_id '${var.org_id}' \
+    --domain '${var.domain}'
+EOD
+
+    environment {
+      GRACEFUL_IMPORTERROR = "true"
+    }
+  }
+}
